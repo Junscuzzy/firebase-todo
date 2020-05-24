@@ -1,8 +1,10 @@
 import * as functions from 'firebase-functions'
+import * as express from 'express'
 
-// Start writing Firebase Functions
-// https://firebase.google.com/docs/functions/typescript
+import { getAllTodos } from './api/todo'
 
-export const helloWorld = functions.https.onRequest((request, response) => {
-  response.send('Hello from Firebase!')
-})
+const app = express()
+
+app.get('/todos', getAllTodos)
+
+export const api = functions.https.onRequest(app)
