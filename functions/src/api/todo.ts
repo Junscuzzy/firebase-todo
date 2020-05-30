@@ -2,13 +2,7 @@
 import { Request, Response } from 'express'
 
 import { db } from '../utils/admin'
-
-export interface Todo {
-  id: string
-  title: string
-  body: string
-  createdAt: string
-}
+import { Todo } from '../interfaces'
 
 export const getAllTodos = async (req: Request, res: Response) => {
   try {
