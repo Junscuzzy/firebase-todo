@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Request, Response } from 'express'
 import * as firebase from 'firebase'
@@ -62,7 +63,7 @@ export const signUpUser = async (req: Request, res: Response) => {
       username,
       email,
       createdAt: new Date().toISOString(),
-      usedId: data.user.uid,
+      userId: data.user.uid,
     }
 
     await db.doc(`/users/${username}`).set(userCredentials)
@@ -77,4 +78,11 @@ export const signUpUser = async (req: Request, res: Response) => {
         .json({ general: 'Something went wrong, please try again' })
     }
   }
+}
+
+export const uploadProfilePhoto = async (req: Request, res: Response) => {
+  res.status(200).json({
+    message: 'Authenticated request',
+    user: req.user,
+  })
 }

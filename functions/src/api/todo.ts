@@ -38,8 +38,8 @@ export const postOneTodo = async (req: Request, res: Response) => {
   try {
     const doc = await db.collection('todos').add(newTodoItem)
     res.status(201).json({ ...newTodoItem, id: doc.id })
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
+    console.error(error)
     res.status(500).json({ error: 'Something went wrong' })
   }
 }
@@ -54,9 +54,9 @@ export const deleteTodo = async (req: Request, res: Response) => {
     }
     await document.delete()
     res.status(200).json({ message: 'Delete successfully' })
-  } catch (err) {
-    console.log(err)
-    res.status(500).json({ error: err.code })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ error: error.code })
   }
 }
 
@@ -69,8 +69,8 @@ export const editTodo = async (req: Request, res: Response) => {
     const document = await db.collection('todos').doc(`${req.params.todoId}`)
     await document.update(req.body)
     res.status(200).json({ message: 'Updated successfully' })
-  } catch (err) {
-    console.log(err)
-    res.status(500).json({ error: err.code })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ error: error.code })
   }
 }
