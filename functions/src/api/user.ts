@@ -1,9 +1,12 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Request, Response } from 'express'
 import * as firebase from 'firebase'
+import * as BusBoy from 'busboy'
+import * as path from 'path'
+import * as os from 'os'
+import * as fs from 'fs'
 
-import { db } from '../utils/admin'
+import { db, admin } from '../utils/admin'
 import config from '../utils/config'
 import { validateLoginData, validateSignUpData } from '../utils/validators'
 
@@ -80,9 +83,65 @@ export const signUpUser = async (req: Request, res: Response) => {
   }
 }
 
-export const uploadProfilePhoto = async (req: Request, res: Response) => {
-  res.status(200).json({
-    message: 'Authenticated request',
-    user: req.user,
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const deleteImage = async (imageName: string) => {
+  const bucket = admin.storage().bucket()
+  const path = `${imageName}`
+  return await bucket.file(path).delete()
+}
+
+export const uploadProfilePhoto = (req: Request, res: Response) => {
+  const username = req.user?.username
+  if (typeof username === 'undefined') {
+    return res.status(400).json({ error: 'Must be authenticated' })
+  }
+
+  const busboy = new BusBoy({ headers: req.headers })
+
+  let imageFileName = ''
+  let imageToBeUploaded = { filePath: '', mimetype: '' }
+
+  busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+    if (mimetype !== 'image/png' && mimetype !== 'image/jpeg') {
+      return res.status(400).json({ error: 'Wrong file type submited' })
+    }
+
+    const imageExtension = filename.split('.')[filename.split('.').length - 1]
+    imageFileName = `${username}.${imageExtension}`
+    const filePath = path.join(os.tmpdir(), imageFileName)
+    imageToBeUploaded = { filePath, mimetype }
+
+    return file.pipe(fs.createWriteStream(filePath))
   })
+
+  if (imageFileName && imageFileName.trim() !== '') {
+    console.log('Before delete, imageFileName: ', imageFileName)
+    deleteImage(imageFileName)
+  }
+
+  busboy.on('finish', async () => {
+    try {
+      const bucket = admin.storage().bucket(`${config.projectId}.appspot.com`)
+      await bucket.upload(imageToBeUploaded.filePath, {
+        resumable: false,
+        metadata: {
+          metadata: {
+            contentType: imageToBeUploaded.mimetype,
+          },
+        },
+      })
+      const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`
+      await db.doc(`/users/${username}`).update({
+        imageUrl,
+      })
+      res.json({ message: 'Image uploaded successfully' })
+    } catch (error) {
+      console.error(error)
+      res.status(500).json({ error: error.code })
+    }
+  })
+
+  // The raw bytes of the upload will be in req.rawBody.  Send it to busboy, and get
+  // a callback when it's finished.
+  return busboy.end(req.rawBody)
 }
