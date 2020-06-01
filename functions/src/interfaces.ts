@@ -19,6 +19,7 @@ export type UserFormData = Partial<User> & { confirmPassword?: string }
 export interface Todo {
   id: string
   title: string
+  username: string
   body: string
   createdAt: string
 }

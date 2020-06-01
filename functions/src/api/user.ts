@@ -145,3 +145,32 @@ export const uploadProfilePhoto = (req: Request, res: Response) => {
   // a callback when it's finished.
   return busboy.end(req.rawBody)
 }
+
+export const getUserDetail = async (req: Request, res: Response) => {
+  try {
+    const doc = await db.doc(`/users/${req.user?.username}`).get()
+    if (doc.exists) {
+      const user = doc.data()
+      res.status(200).json({ user })
+    }
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: error.code })
+  }
+}
+
+export const updateUserDetail = async (req: Request, res: Response) => {
+  try {
+    const doc = await db.doc(`/users/${req.user?.username}`)
+    if (req.body.username && req.body.username.trim !== '') {
+      return res.status(400).json({ message: "You can't edit the username" })
+    }
+
+    await doc.update(req.body)
+
+    return res.status(201).json({ message: 'Updated successfully' })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ error: 'Cannot Update the value' })
+  }
+}
