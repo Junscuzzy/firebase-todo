@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import firebase from 'firebase'
 import { Request, Response } from 'express'
-import * as firebase from 'firebase'
-import * as BusBoy from 'busboy'
+import BusBoy from 'busboy'
 import * as path from 'path'
 import * as os from 'os'
 import * as fs from 'fs'
@@ -115,13 +116,12 @@ export const uploadProfilePhoto = (req: Request, res: Response) => {
   })
 
   if (imageFileName && imageFileName.trim() !== '') {
-    console.log('Before delete, imageFileName: ', imageFileName)
     deleteImage(imageFileName)
   }
 
   busboy.on('finish', async () => {
     try {
-      const bucket = admin.storage().bucket(`${config.projectId}.appspot.com`)
+      const bucket = admin.storage().bucket(config.storageBucket)
       await bucket.upload(imageToBeUploaded.filePath, {
         resumable: false,
         metadata: {
