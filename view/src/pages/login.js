@@ -57,13 +57,7 @@ function Login(props) {
       const { type, payload } = action
       switch (type) {
         case 'CHANGE':
-          if (payload.name === 'email') {
-            return { ...state, email: payload.value }
-          }
-          if (payload.name === 'password') {
-            return { ...state, password: payload.value }
-          }
-          return state
+          return { ...state, ...payload }
         case 'LOADING':
           return { ...state, loading: payload }
         case 'ERRORS':
@@ -79,8 +73,7 @@ function Login(props) {
     dispatch({
       type: 'CHANGE',
       payload: {
-        name: event.target.name,
-        value: event.target.value,
+        [event.target.name]: event.target.value,
       },
     })
   }
